@@ -11,7 +11,7 @@ variable "config" {
     public_key = string
 
     # (Required) SSH Private Key
-    private_key = string
+    private_key      = string
     private_key_path = optional(string, "~/.ssh/id_rsa")
 
     # (Optional) Timezone
@@ -27,7 +27,7 @@ variable "config" {
 variable "proxmox" {
   description = "Cluster Configuration"
   type = object({
-    nodes     = list(string)
+    nodes        = list(string)
     datastore_id = optional(string, "local")
   })
 }
@@ -93,7 +93,7 @@ variable "masters" {
 variable "ha" {
   description = "(Optional) Control plane HA. More info: https://docs.k0sproject.io/stable/high-availability/"
   type = object({
-    enabled = optional(bool, false)
+    enabled                  = optional(bool, false)
     load_balancer_ip_address = optional(string)
   })
   default = {
@@ -114,9 +114,9 @@ variable "nllb" {
 variable "cplb" {
   description = "(Optional) Control Plane Load Balancing. More info: https://docs.k0sproject.io/stable/cplb/"
   type = object({
-    enabled = optional(bool, false)
+    enabled    = optional(bool, false)
     virtual_ip = optional(string, null)
-    auth_pass = optional(string, null)
+    auth_pass  = optional(string, null)
   })
   default = {
     enabled = false
@@ -133,8 +133,8 @@ variable "workers" {
     hostname = optional(string, "")
 
     # Compute
-    cores  = optional(number, 4)
-    memory = optional(number, 10240)
+    cores     = optional(number, 4)
+    memory    = optional(number, 10240)
     hugepages = optional(number, null)
 
     # Disk
@@ -142,7 +142,7 @@ variable "workers" {
     disk_size    = optional(number, 100)
 
     # (Optional) Network Configuration
-    bridge    = optional(string, "vmbr0")
+    bridge = optional(string, "vmbr0")
 
     # (Optional) Define packages
     packages = optional(list(string), ["qemu-guest-agent"])

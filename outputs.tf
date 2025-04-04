@@ -11,9 +11,9 @@ output "lxc_url" {
 }
 
 output "masters" {
-  value     = local.master_assignments
+  value = local.master_assignments
 }
 
 output "workers" {
-  value     = local.worker_assignments
+  value = local.worker_assignments
 }
