@@ -1,0 +1,85 @@
+apiVersion: k0sctl.k0sproject.io/v1beta1
+kind: Cluster
+metadata:
+  name: ${name}
+  user: admin
+spec:
+  hosts:
+%{ for addr in master_ips ~}
+    - role: controller
+      installFlags:
+%{ for flag in installFlags ~}
+        - ${flag}
+%{ endfor ~}
+      ssh:
+        address: ${addr}
+        user: ${username}
+        port: 22
+        keyPath: ${private_key_path}
+      # noTaints: true
+%{ endfor ~}
+%{ for addr in worker_ips ~}
+    - role: worker
+      ssh:
+        address: ${addr}
+        user: ${username}
+        port: 22
+        keyPath: ${private_key_path}
+%{ endfor ~}
+  k0s:
+    config:
+      apiVersion: ${k0s.config.apiVersion}
+      kind: ${k0s.config.kind}
+      metadata:
+        name: ${k0s.config.metadata.name}
+      spec:
+        api:
+%{ if ha.enabled ~}
+          address: ${ha.load_balancer_ip_address}
+          sans:
+            - ${ha.load_balancer_ip_address}
+%{ endif ~}
+          k0sApiPort: 9443
+          port: 6443
+        installConfig:
+          users:
+            etcdUser: etcd
+            kineUser: kube-apiserver
+            konnectivityUser: konnectivity-server
+            kubeAPIserverUser: kube-apiserver
+            kubeSchedulerUser: kube-scheduler
+        konnectivity:
+          adminPort: ${k0s.config.spec.konnectivity.adminPort}
+          agentPort: ${k0s.config.spec.konnectivity.agentPort}
+        network:
+%{ if nllb.enabled ~}
+          nodeLocalLoadBalancing:
+            enabled: true
+            type: EnvoyProxy
+%{ endif ~}
+%{ if cplb.enabled ~}
+          controlPlaneLoadBalancing:
+            enabled: true
+            type: Keepalived
+            keepalived:
+              vrrpInstances:
+              - virtualIPs: ["${cplb.virtual_ip}"]
+                authPass: "${cplb.auth_pass}"
+%{ endif ~}
+          kubeProxy:
+            disabled: false
+            mode: iptables
+          kuberouter:
+            autoMTU: true
+            mtu: 0
+            peerRouterASNs: ""
+            peerRouterIPs: ""
+          podCIDR: 10.244.0.0/16
+          provider: kuberouter
+          serviceCIDR: 10.96.0.0/12
+        podSecurityPolicy:
+          defaultPolicy: 00-k0s-privileged
+        storage:
+          type: etcd
+        telemetry:
+          enabled: false

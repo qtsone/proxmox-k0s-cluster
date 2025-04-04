@@ -1,0 +1,39 @@
+name: Pre-commit checks
+on:
+  - pull_request
+
+jobs:
+  pre-commit:
+    runs-on: ubuntu-latest
+    steps:
+    - name: checkout
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.pull_request.head.ref }}
+
+    - name: setup python env
+      uses: actions/setup-python@v3
+
+    - name: upgrade pip certifi
+      run: |
+        pip install --upgrade pip certifi
+
+    - name: setup node
+      uses: actions/setup-node@v3
+      with:
+        node-version: 16
+
+    - name: setup terraform
+      uses: hashicorp/setup-terraform@v3
+
+    - name: run pre-commit checks
+      uses: pre-commit/action@v3.0.1
+
+    - name: render terraform docs
+      uses: terraform-docs/gh-actions@v1
+      with:
+        find-dir: .
+        output-file: README.md
+        output-method: inject
+        git-push: "true"
+        config-file: .terraform-docs.yml
