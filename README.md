@@ -1,4 +1,4 @@
-# proxmox-k8s-cluster
+# proxmox-k0s-cluster
 
 <!-- BEGIN_TF_DOCS -->
 [![semantic-release-badge]][semantic-release]
