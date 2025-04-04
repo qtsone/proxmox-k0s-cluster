@@ -35,7 +35,6 @@ resource "proxmox_virtual_environment_container" "master" {
       keys = [
         trimspace(var.config.public_key)
       ]
-      # password = random_password.root.0.result
     }
   }
 
