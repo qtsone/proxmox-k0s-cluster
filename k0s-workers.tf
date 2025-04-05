@@ -1,9 +1,8 @@
 # Configure VM Worker Nodes
 locals {
-  worker_count = var.controller_plus_worker ? 0 : var.workers.count
   worker_hostname = try(coalesce(var.workers.hostname), "${var.config.name}-worker")
   worker_assignments = [
-    for i in range(local.worker_count) : {
+    for i in range(var.workers.count) : {
       index     = i
       hostname  = "${local.worker_hostname}-${i + 1}"
       address   = "${cidrhost(var.config.ip_subnet, local.worker_ip_offset + i)}/${local.cidr_suffix}"
@@ -18,7 +17,7 @@ locals {
 resource "proxmox_virtual_environment_file" "worker_cloudconfig" {
   for_each = {
     for worker in local.worker_assignments : worker.hostname => worker
-    if var.worker_deployment_type == "vm"
+    if var.workers.deployment_type == "vm"
   }
 
   content_type = "snippets"
@@ -54,7 +53,7 @@ resource "proxmox_virtual_environment_file" "worker_cloudconfig" {
 resource "proxmox_virtual_environment_vm" "worker" {
   for_each = {
     for worker in local.worker_assignments : worker.hostname => worker
-    if var.worker_deployment_type == "vm"
+    if var.workers.deployment_type == "vm"
   }
 
   depends_on = [proxmox_virtual_environment_file.worker_cloudconfig]
@@ -89,6 +88,10 @@ resource "proxmox_virtual_environment_vm" "worker" {
     ssd          = true
   }
 
+  operating_system {
+    type = "l26"
+  }
+
   initialization {
     datastore_id = var.workers.datastore_id
     ip_config {
@@ -111,7 +114,7 @@ resource "proxmox_virtual_environment_vm" "worker" {
 resource "proxmox_virtual_environment_container" "worker" {
   for_each = {
     for worker in local.worker_assignments : worker.hostname => worker
-    if var.worker_deployment_type == "lxc"
+    if var.workers.deployment_type == "lxc"
   }
 
   description = "Worker Node"
@@ -165,7 +168,7 @@ resource "proxmox_virtual_environment_container" "worker" {
   }
 
   operating_system {
-    template_file_id = proxmox_virtual_environment_download_file.vm[each.value.node_name].id
+    template_file_id = proxmox_virtual_environment_download_file.lxc[each.value.node_name].id
     type             = local.distro
   }
 
@@ -187,7 +190,7 @@ resource "proxmox_virtual_environment_container" "worker" {
 resource "null_resource" "configure_lxc_worker" {
   for_each = {
     for k, v in proxmox_virtual_environment_container.worker : k => v
-    if var.worker_deployment_type == "lxc"
+    if var.workers.deployment_type == "lxc"
   }
 
   triggers = {

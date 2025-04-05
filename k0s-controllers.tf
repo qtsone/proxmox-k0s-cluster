@@ -17,7 +17,7 @@ locals {
 resource "proxmox_virtual_environment_file" "master_cloudconfig" {
   for_each = {
     for master in local.master_assignments : master.hostname => master
-    if var.master_deployment_type == "vm"
+    if var.masters.deployment_type == "vm"
   }
 
   content_type = "snippets"
@@ -53,7 +53,7 @@ resource "proxmox_virtual_environment_file" "master_cloudconfig" {
 resource "proxmox_virtual_environment_vm" "master" {
   for_each = {
     for master in local.master_assignments : master.hostname => master
-    if var.master_deployment_type == "vm"
+    if var.masters.deployment_type == "vm"
   }
 
   depends_on = [proxmox_virtual_environment_file.master_cloudconfig]
@@ -80,12 +80,16 @@ resource "proxmox_virtual_environment_vm" "master" {
 
   disk {
     datastore_id = var.masters.datastore_id
-    file_id      = proxmox_virtual_environment_download_file.lxc[each.value.node_name].id
+    file_id      = proxmox_virtual_environment_download_file.vm[each.value.node_name].id
     interface    = "scsi0"
     iothread     = false
     discard      = "on"
     size         = var.masters.disk_size
     ssd          = true
+  }
+
+  operating_system {
+    type = "l26"
   }
 
   initialization {
@@ -110,7 +114,7 @@ resource "proxmox_virtual_environment_vm" "master" {
 resource "proxmox_virtual_environment_container" "master" {
   for_each = {
     for master in local.master_assignments : master.hostname => master
-    if var.master_deployment_type == "lxc"
+    if var.masters.deployment_type == "lxc"
   }
 
   description = "Master Node"
@@ -186,7 +190,7 @@ resource "proxmox_virtual_environment_container" "master" {
 resource "null_resource" "configure_lxc_master" {
   for_each = {
     for k, v in proxmox_virtual_environment_container.master : k => v
-    if var.master_deployment_type == "lxc"
+    if var.masters.deployment_type == "lxc"
   }
 
   triggers = {

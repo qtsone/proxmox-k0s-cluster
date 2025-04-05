@@ -71,48 +71,28 @@ variable "installFlags" {
   default     = ["--disable-components metrics-server"]
 }
 
-variable "master_deployment_type" {
-  description = "(Optional) Deployment type for master nodes: 'lxc' (default) or 'vm'"
-  type        = string
-  default     = "lxc"
-  validation {
-    condition     = can(regex("(lxc|vm)", var.master_deployment_type))
-    error_message = "master_deployment_type must be either 'lxc' or 'vm'"
-  }
-}
-
-variable "worker_deployment_type" {
-  description = "(Optional) Deployment type for worker nodes: 'vm' (default) or 'lxc'"
-  type        = string
-  default     = "vm"
-  validation {
-    condition     = can(regex("(lxc|vm)", var.worker_deployment_type))
-    error_message = "worker_deployment_type must be either 'lxc' or 'vm'"
-  }
-}
-
-variable "controller_plus_worker" {
-  description = "(Optional) Set true to have controller nodes also act as workers, disabling separate worker deployments"
-  type        = bool
-  default     = false
-}
-
 variable "masters" {
   description = "Configuration for master nodes"
   type = object({
     # (Required) Number of master nodes
     count = optional(number, 3)
 
+    # "(Optional) Deployment type for master nodes: 'lxc' (default) or 'vm'"
+    deployment_type = optional(string, "lxc")
+
+    # (Optional) If enabled, Controller nodes also act as workers
+    worker = optional(bool, false)
+
     # (Optional) Hostname prefix
     hostname = optional(string, "")
 
     # Compute
-    cpu_arch = optional(string, "amd64")
+    cpu_arch    = optional(string, "amd64")
     cpu_sockets = optional(number, 1)
-    cpu_cores = optional(number, 4)
-    cpu_units = optional(number, 100)
-    memory    = optional(number, 4096)
-    hugepages = optional(number, null)
+    cpu_cores   = optional(number, 4)
+    cpu_units   = optional(number, 100)
+    memory      = optional(number, 4096)
+    hugepages   = optional(number, null)
 
     # Disk
     datastore_id = optional(string, "local")
@@ -126,6 +106,10 @@ variable "masters" {
     packages = optional(list(string), ["qemu-guest-agent"])
     commands = optional(list(string), ["systemctl enable qemu-guest-agent", "systemctl start qemu-guest-agent"])
   })
+  validation {
+    condition     = can(regex("(lxc|vm)", var.masters.deployment_type))
+    error_message = "deployment_type must be either 'lxc' or 'vm'"
+  }
 }
 
 variable "workers" {
@@ -134,16 +118,19 @@ variable "workers" {
     # (Required) Number of worker nodes
     count = optional(number, 3)
 
+    # "(Optional) Deployment type for worker nodes: 'vm' (default) or 'lxc'"
+    deployment_type = optional(string, "vm")
+
     # (Optional) Hostname prefix
     hostname = optional(string, "")
 
     # Compute
-    cpu_arch = optional(string, "amd64")
+    cpu_arch    = optional(string, "amd64")
     cpu_sockets = optional(number, 1)
-    cpu_cores = optional(number, 4)
-    cpu_units = optional(number, 100)
-    memory    = optional(number, 10240)
-    hugepages = optional(number, null)
+    cpu_cores   = optional(number, 4)
+    cpu_units   = optional(number, 100)
+    memory      = optional(number, 10240)
+    hugepages   = optional(number, null)
 
     # Disk
     datastore_id = optional(string, "local")
@@ -157,6 +144,10 @@ variable "workers" {
     packages = optional(list(string), ["qemu-guest-agent"])
     commands = optional(list(string), ["systemctl enable qemu-guest-agent", "systemctl start qemu-guest-agent"])
   })
+  validation {
+    condition     = can(regex("(lxc|vm)", var.workers.deployment_type))
+    error_message = "deployment_type must be either 'lxc' or 'vm'"
+  }
 }
 
 variable "ha" {
