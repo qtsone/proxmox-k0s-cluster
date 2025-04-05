@@ -56,8 +56,21 @@ locals {
 
   k0sctl_config = templatefile("${path.module}/templates/k0sctl.tftpl", {
     name             = var.config.name
-    master_ips       = [for m in local.master_assignments : split("/", m.address)[0]]
-    worker_ips       = [for w in local.worker_assignments : split("/", w.address)[0]]
+    master_ips       = [for m in local.master_assignments : m.ip]
+    worker_ips       = [for w in local.worker_assignments : w.ip]
+    username         = var.config.username
+    private_key_path = var.config.private_key_path
+    k0s              = local.k0s
+    ha               = var.ha
+    nllb             = var.nllb
+    cplb             = var.cplb
+    installFlags     = var.installFlags
+  })
+
+  haproxy_config = templatefile("${path.module}/templates/haproxy.tftpl", {
+    name             = var.config.name
+    masters          = [for m in local.master_assignments : m]
+    workers          = [for w in local.worker_assignments : w]
     username         = var.config.username
     private_key_path = var.config.private_key_path
     k0s              = local.k0s
