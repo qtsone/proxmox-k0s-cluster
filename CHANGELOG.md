@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+# [1.2.0](https://github.com/qtsone/proxmox-k0s-cluster/compare/v1.1.0...v1.2.0) (2025-04-05)
+
+
+### Bug Fixes
+
+* rename master to controller ([08cec21](https://github.com/qtsone/proxmox-k0s-cluster/commit/08cec21e5b3ad7245414f3829e9f3c8a30c120e0))
+* streamline configuration ([90d5966](https://github.com/qtsone/proxmox-k0s-cluster/commit/90d5966eb739f322d2ea9129ae10776b3dd4d3d7))
+
+
+### Features
+
+* add mixed lxc and vm support for controller and workers ([cb23b51](https://github.com/qtsone/proxmox-k0s-cluster/commit/cb23b511dcaf609df4c89f3304765da06350e717))
+
 # [1.1.0](https://github.com/qtsone/proxmox-k0s-cluster/compare/v1.0.1...v1.1.0) (2025-04-05)
 
 
