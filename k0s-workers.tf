@@ -81,6 +81,7 @@ resource "proxmox_virtual_environment_vm" "worker" {
     iothread     = false
     discard      = "on"
     size         = var.workers.disk_size
+    ssd          = true
   }
 
   initialization {
