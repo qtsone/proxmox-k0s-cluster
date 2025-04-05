@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.1](https://github.com/qtsone/proxmox-k0s-cluster/compare/v1.0.0...v1.0.1) (2025-04-05)
+
+
+### Bug Fixes
+
+* enable ssd-emulation ([6a92bec](https://github.com/qtsone/proxmox-k0s-cluster/commit/6a92bec354a8fe59a2c648303ec3f46d85f65a49))
+
 # 1.0.0 (2025-04-04)
 
 
