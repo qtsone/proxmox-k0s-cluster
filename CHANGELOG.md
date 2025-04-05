@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+# [1.1.0](https://github.com/qtsone/proxmox-k0s-cluster/compare/v1.0.1...v1.1.0) (2025-04-05)
+
+
+### Bug Fixes
+
+* terraform fmt ([bb564ee](https://github.com/qtsone/proxmox-k0s-cluster/commit/bb564eecc3b18ff565907a3ae2d993ceba77e484))
+
+
+### Features
+
+* **ha:** export haproxy.cfg if ha is enabled ([ab541b4](https://github.com/qtsone/proxmox-k0s-cluster/commit/ab541b4c8a3e8ecc19eddee4fdc06aa6d00339fd))
+
 ## [1.0.1](https://github.com/qtsone/proxmox-k0s-cluster/compare/v1.0.0...v1.0.1) (2025-04-05)
 
 
