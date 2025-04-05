@@ -1,6 +1,13 @@
 <!--
-Remember to add '[WIP]' to the beginning of the title if this PR is still a work-in-progress. Remove it when it is ready for review!
+Remember to mark PRs as drafts until they are ready for review!
 -->
+## TODOs
+
+Please ensure all of these TODOs are completed before asking for a review.
+
+- [ ] Ensure the branch is named correctly with the issue number. e.g: `feat/new-feature` or `bug/fix-bug-42`.
+- [ ] Update PR description
+- [ ] Update the docs.
 
 ## Description
 
@@ -17,15 +24,8 @@ Remember to add '[WIP]' to the beginning of the title if this PR is still a work
       - Create a stub for documentation including bullet points for how to use the feature, code snippets, etc.
 -->
 
-## TODOs
 
-Please ensure all of these TODOs are completed before asking for a review.
-
-- [ ] Ensure the branch is named correctly with the issue number. e.g: `feat/new-vpc-endpoints-955` or `bug/missing-count-param-434`.
-- [ ] Update the docs.
-- [ ] Run the relevant tests successfully.
-
-## Related Issues
+### Related Issues
 
 <!--
   Link to related issues, and issues fixed or partially addressed by this PR.
