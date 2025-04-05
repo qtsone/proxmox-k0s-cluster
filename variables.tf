@@ -71,13 +71,13 @@ variable "installFlags" {
   default     = ["--disable-components metrics-server"]
 }
 
-variable "masters" {
-  description = "Configuration for master nodes"
+variable "controllers" {
+  description = "Configuration for controller nodes"
   type = object({
-    # (Required) Number of master nodes
+    # (Required) Number of controller nodes
     count = optional(number, 3)
 
-    # "(Optional) Deployment type for master nodes: 'lxc' (default) or 'vm'"
+    # "(Optional) Deployment type for controller nodes: 'lxc' (default) or 'vm'"
     deployment_type = optional(string, "lxc")
 
     # (Optional) If enabled, Controller nodes also act as workers
@@ -103,11 +103,15 @@ variable "masters" {
     network = optional(string, "eth0")
 
     # (Optional) Define packages
-    packages = optional(list(string), ["qemu-guest-agent"])
-    commands = optional(list(string), ["systemctl enable qemu-guest-agent", "systemctl start qemu-guest-agent"])
+    packages = optional(list(string), [])
+    commands = optional(list(string), [])
+    files = optional(list(object({
+      path    = string
+      content = string
+    })), [])
   })
   validation {
-    condition     = can(regex("(lxc|vm)", var.masters.deployment_type))
+    condition     = can(regex("(lxc|vm)", var.controllers.deployment_type))
     error_message = "deployment_type must be either 'lxc' or 'vm'"
   }
 }
@@ -143,6 +147,10 @@ variable "workers" {
     # (Optional) Define packages
     packages = optional(list(string), ["qemu-guest-agent"])
     commands = optional(list(string), ["systemctl enable qemu-guest-agent", "systemctl start qemu-guest-agent"])
+    files = optional(list(object({
+      path    = string
+      content = string
+    })), [])
   })
   validation {
     condition     = can(regex("(lxc|vm)", var.workers.deployment_type))

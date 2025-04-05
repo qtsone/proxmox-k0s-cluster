@@ -17,7 +17,7 @@ spec:
         port: 22
         keyPath: ${private_key_path}
 %{ if controller_worker ~}
-        noTaints: true
+      noTaints: true
 %{ endif ~}
 %{ endfor ~}
 %{ for node in workers ~}

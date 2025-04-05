@@ -1,10 +1,10 @@
 # Create LXC Control Plane
 locals {
-  master_hostname = try(coalesce(var.masters.hostname), "${var.config.name}-master")
-  master_assignments = [
-    for i in range(var.masters.count) : {
+  controller_hostname = try(coalesce(var.controllers.hostname), "${var.config.name}-controller")
+  controller_assignments = [
+    for i in range(var.controllers.count) : {
       index     = i
-      hostname  = "${local.master_hostname}-${i + 1}"
+      hostname  = "${local.controller_hostname}-${i + 1}"
       address   = "${cidrhost(var.config.ip_subnet, local.ip_offset + i)}/${local.cidr_suffix}"
       ip        = split("/", "${cidrhost(var.config.ip_subnet, local.ip_offset + i)}/${local.cidr_suffix}")[0]
       gateway   = var.config.gateway
@@ -14,10 +14,10 @@ locals {
 }
 
 # VM Controller Nodes
-resource "proxmox_virtual_environment_file" "master_cloudconfig" {
+resource "proxmox_virtual_environment_file" "controller_cloudconfig" {
   for_each = {
-    for master in local.master_assignments : master.hostname => master
-    if var.masters.deployment_type == "vm"
+    for controller in local.controller_assignments : controller.hostname => controller
+    if var.controllers.deployment_type == "vm"
   }
 
   content_type = "snippets"
@@ -36,55 +36,59 @@ resource "proxmox_virtual_environment_file" "master_cloudconfig" {
           - ${trimspace(var.config.public_key)}
     package_update: true
     packages:
-%{for pkg in var.masters.packages~}
+%{for pkg in local.controller_packages~}
       - ${pkg}
 %{endfor~}
     runcmd:
-%{for cmd in var.masters.commands~}
+%{for cmd in local.controller_commands~}
       - ${cmd}
 %{endfor~}
       - echo "done" > /tmp/cloud-config.done
+    write_files:
+%{for item in local.controller_files~}
+      - path: ${item.path}
+        content: |
+          ${item.content}
+%{endfor~}
     EOF
 
     file_name = "${each.key}-cloud-config.yaml"
   }
 }
 
-resource "proxmox_virtual_environment_vm" "master" {
+resource "proxmox_virtual_environment_vm" "controller" {
   for_each = {
-    for master in local.master_assignments : master.hostname => master
-    if var.masters.deployment_type == "vm"
+    for controller in local.controller_assignments : controller.hostname => controller
+    if var.controllers.deployment_type == "vm"
   }
-
-  depends_on = [proxmox_virtual_environment_file.master_cloudconfig]
 
   name      = each.key
   node_name = each.value.node_name
-  tags      = ["k8s", "master"]
+  tags      = ["k8s", "controller"]
 
   agent {
     enabled = true
   }
 
   cpu {
-    cores   = var.masters.cpu_cores
+    cores   = var.controllers.cpu_cores
     sockets = 1
     type    = "host"
     numa    = true
   }
 
   memory {
-    dedicated = var.masters.memory
-    hugepages = var.masters.hugepages
+    dedicated = var.controllers.memory
+    hugepages = var.controllers.hugepages
   }
 
   disk {
-    datastore_id = var.masters.datastore_id
+    datastore_id = var.controllers.datastore_id
     file_id      = proxmox_virtual_environment_download_file.vm[each.value.node_name].id
     interface    = "scsi0"
     iothread     = false
     discard      = "on"
-    size         = var.masters.disk_size
+    size         = var.controllers.disk_size
     ssd          = true
   }
 
@@ -93,7 +97,7 @@ resource "proxmox_virtual_environment_vm" "master" {
   }
 
   initialization {
-    datastore_id = var.masters.datastore_id
+    datastore_id = var.controllers.datastore_id
     ip_config {
       ipv4 {
         address = each.value.address
@@ -101,23 +105,23 @@ resource "proxmox_virtual_environment_vm" "master" {
       }
     }
 
-    user_data_file_id = proxmox_virtual_environment_file.master_cloudconfig[each.key].id
+    user_data_file_id = proxmox_virtual_environment_file.controller_cloudconfig[each.key].id
   }
 
   network_device {
-    bridge = var.masters.bridge
+    bridge = var.controllers.bridge
   }
 
 }
 
 # LXC Controller Nodes
-resource "proxmox_virtual_environment_container" "master" {
+resource "proxmox_virtual_environment_container" "controller" {
   for_each = {
-    for master in local.master_assignments : master.hostname => master
-    if var.masters.deployment_type == "lxc"
+    for controller in local.controller_assignments : controller.hostname => controller
+    if var.controllers.deployment_type == "lxc"
   }
 
-  description = "Master Node"
+  description = "controller Node"
 
   node_name = each.value.node_name
 
@@ -145,26 +149,26 @@ resource "proxmox_virtual_environment_container" "master" {
   }
 
   cpu {
-    architecture = var.masters.cpu_arch
-    cores        = var.masters.cpu_cores
-    units        = var.masters.cpu_units
+    architecture = var.controllers.cpu_arch
+    cores        = var.controllers.cpu_cores
+    units        = var.controllers.cpu_units
   }
 
   memory {
-    dedicated = var.masters.memory
+    dedicated = var.controllers.memory
     swap      = 0
   }
 
   network_interface {
     enabled  = true
     firewall = false
-    bridge   = var.masters.bridge
-    name     = var.masters.network
+    bridge   = var.controllers.bridge
+    name     = var.controllers.network
   }
 
   disk {
-    datastore_id = var.masters.datastore_id
-    size         = var.masters.disk_size
+    datastore_id = var.controllers.datastore_id
+    size         = var.controllers.disk_size
   }
 
   operating_system {
@@ -178,7 +182,7 @@ resource "proxmox_virtual_environment_container" "master" {
     down_delay = "0"
   }
 
-  tags         = ["k8s", "master"]
+  tags         = ["k8s", "controller"]
   unprivileged = false
 
   features {
@@ -187,10 +191,10 @@ resource "proxmox_virtual_environment_container" "master" {
 }
 
 # Configure for k0s
-resource "null_resource" "configure_lxc_master" {
+resource "null_resource" "configure_lxc_controller" {
   for_each = {
-    for k, v in proxmox_virtual_environment_container.master : k => v
-    if var.masters.deployment_type == "lxc"
+    for k, v in proxmox_virtual_environment_container.controller : k => v
+    if var.controllers.deployment_type == "lxc"
   }
 
   triggers = {

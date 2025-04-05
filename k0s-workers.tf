@@ -36,14 +36,20 @@ resource "proxmox_virtual_environment_file" "worker_cloudconfig" {
           - ${trimspace(var.config.public_key)}
     package_update: true
     packages:
-%{for pkg in var.workers.packages~}
+%{for pkg in local.worker_packages~}
       - ${pkg}
 %{endfor~}
     runcmd:
-%{for cmd in var.workers.commands~}
+%{for cmd in local.worker_commands~}
       - ${cmd}
 %{endfor~}
       - echo "done" > /tmp/cloud-config.done
+    write_files:
+%{for item in local.controller_files~}
+      - path: ${item.path}
+        content: |
+          ${item.content}
+%{endfor~}
     EOF
 
     file_name = "${each.key}-cloud-config.yaml"
@@ -55,8 +61,6 @@ resource "proxmox_virtual_environment_vm" "worker" {
     for worker in local.worker_assignments : worker.hostname => worker
     if var.workers.deployment_type == "vm"
   }
-
-  depends_on = [proxmox_virtual_environment_file.worker_cloudconfig]
 
   name      = each.key
   node_name = each.value.node_name

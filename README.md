@@ -20,8 +20,8 @@ Basic usage of this module:
 | [local_file.haproxy](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
 | [local_file.k0sctl](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
 | [null_resource.configure](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
-| [proxmox_virtual_environment_container.master](https://registry.terraform.io/providers/bpg/proxmox/latest/docs/resources/virtual_environment_container) | resource |
-| [proxmox_virtual_environment_download_file.master](https://registry.terraform.io/providers/bpg/proxmox/latest/docs/resources/virtual_environment_download_file) | resource |
+| [proxmox_virtual_environment_container.controller](https://registry.terraform.io/providers/bpg/proxmox/latest/docs/resources/virtual_environment_container) | resource |
+| [proxmox_virtual_environment_download_file.controller](https://registry.terraform.io/providers/bpg/proxmox/latest/docs/resources/virtual_environment_download_file) | resource |
 | [proxmox_virtual_environment_download_file.worker](https://registry.terraform.io/providers/bpg/proxmox/latest/docs/resources/virtual_environment_download_file) | resource |
 | [proxmox_virtual_environment_file.cloudconfig](https://registry.terraform.io/providers/bpg/proxmox/latest/docs/resources/virtual_environment_file) | resource |
 | [proxmox_virtual_environment_vm.worker](https://registry.terraform.io/providers/bpg/proxmox/latest/docs/resources/virtual_environment_vm) | resource |
@@ -34,7 +34,7 @@ Basic usage of this module:
 | <a name="input_ha"></a> [ha](#input\_ha) | (Optional) Control plane HA. More info: https://docs.k0sproject.io/stable/high-availability/ | <pre>object({<br/>    enabled                  = optional(bool, false)<br/>    load_balancer_ip_address = optional(string)<br/>  })</pre> | <pre>{<br/>  "enabled": false<br/>}</pre> | no |
 | <a name="input_installFlags"></a> [installFlags](#input\_installFlags) | (optional) Control Plane install flags | `list(string)` | <pre>[<br/>  "--disable-components metrics-server"<br/>]</pre> | no |
 | <a name="input_k0s"></a> [k0s](#input\_k0s) | k0s Configuration | <pre>object({<br/>    config = optional(object({<br/>      apiVersion = optional(string)<br/>      kind       = optional(string)<br/>      metadata = optional(object({<br/>        name = optional(string)<br/>      }))<br/>      spec = optional(object({<br/>        konnectivity = optional(object({<br/>          adminPort = optional(number, 8133)<br/>          agentPort = optional(number, 8132)<br/>        }))<br/>      }))<br/>    }))<br/>  })</pre> | `{}` | no |
-| <a name="input_masters"></a> [masters](#input\_masters) | Configuration for master nodes | <pre>object({<br/>    # (Required) Number of master nodes<br/>    count = optional(number, 3)<br/><br/>    # (Optional) Hostname prefix<br/>    hostname = optional(string, "")<br/><br/>    # Compute<br/>    cores  = optional(number, 4)<br/>    memory = optional(number, 4096)<br/><br/>    # Disk<br/>    datastore_id = optional(string, "local")<br/>    disk_size    = optional(number, 10)<br/><br/>    # (Optional) Network Configuration<br/>    bridge  = optional(string, "vmbr0")<br/>    network = optional(string, "eth0")<br/>  })</pre> | n/a | yes |
+| <a name="input_controllers"></a> [controllers](#input\_controllers) | Configuration for controller nodes | <pre>object({<br/>    # (Required) Number of controller nodes<br/>    count = optional(number, 3)<br/><br/>    # (Optional) Hostname prefix<br/>    hostname = optional(string, "")<br/><br/>    # Compute<br/>    cores  = optional(number, 4)<br/>    memory = optional(number, 4096)<br/><br/>    # Disk<br/>    datastore_id = optional(string, "local")<br/>    disk_size    = optional(number, 10)<br/><br/>    # (Optional) Network Configuration<br/>    bridge  = optional(string, "vmbr0")<br/>    network = optional(string, "eth0")<br/>  })</pre> | n/a | yes |
 | <a name="input_nllb"></a> [nllb](#input\_nllb) | (Optional) Node Local Load Balancing. More info: https://docs.k0sproject.io/stable/nllb/ | <pre>object({<br/>    enabled = optional(bool, false)<br/>  })</pre> | <pre>{<br/>  "enabled": false<br/>}</pre> | no |
 | <a name="input_os"></a> [os](#input\_os) | OS Configuration | <pre>object({<br/>    distro  = optional(string)<br/>    version = optional(string)<br/>  })</pre> | `{}` | no |
 | <a name="input_proxmox"></a> [proxmox](#input\_proxmox) | Cluster Configuration | <pre>object({<br/>    nodes        = list(string)<br/>    datastore_id = optional(string, "local")<br/>  })</pre> | n/a | yes |
@@ -46,7 +46,7 @@ Basic usage of this module:
 | <a name="output_iso_url"></a> [iso\_url](#output\_iso\_url) | n/a |
 | <a name="output_k0sctl_config"></a> [k0sctl\_config](#output\_k0sctl\_config) | n/a |
 | <a name="output_lxc_url"></a> [lxc\_url](#output\_lxc\_url) | n/a |
-| <a name="output_masters"></a> [masters](#output\_masters) | n/a |
+| <a name="output_controllers"></a> [controllers](#output\_controllers) | n/a |
 | <a name="output_workers"></a> [workers](#output\_workers) | n/a |
 ---
 [semantic-release-badge]: https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg

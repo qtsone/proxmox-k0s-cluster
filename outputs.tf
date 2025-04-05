@@ -10,8 +10,8 @@ output "lxc_url" {
   value = local.lxc_url
 }
 
-output "masters" {
-  value = local.master_assignments
+output "controllers" {
+  value = local.controller_assignments
 }
 
 output "workers" {

@@ -52,14 +52,14 @@ locals {
 
   cidr_suffix      = split("/", var.config.ip_subnet)[1]
   ip_offset        = try(var.config.ip_offset, 10)
-  worker_ip_offset = local.ip_offset + var.masters.count
+  worker_ip_offset = local.ip_offset + var.controllers.count
 
   k0sctl_config = templatefile("${path.module}/templates/k0sctl.tftpl", {
     name              = var.config.name
-    controllers       = [for m in local.master_assignments : m]
+    controllers       = [for m in local.controller_assignments : m]
     workers           = [for w in local.worker_assignments : w]
-    controller_role   = var.masters.worker ? "controller+worker" : "controller"
-    controller_worker = var.masters.worker
+    controller_role   = var.controllers.worker ? "controller+worker" : "controller"
+    controller_worker = var.controllers.worker
     username          = var.config.username
     private_key_path  = var.config.private_key_path
     k0s               = local.k0s
@@ -71,7 +71,7 @@ locals {
 
   haproxy_config = templatefile("${path.module}/templates/haproxy.tftpl", {
     name             = var.config.name
-    masters          = [for m in local.master_assignments : m]
+    controllers      = [for m in local.controller_assignments : m]
     workers          = [for w in local.worker_assignments : w]
     username         = var.config.username
     private_key_path = var.config.private_key_path
@@ -81,4 +81,12 @@ locals {
     cplb             = var.cplb
     installFlags     = var.installFlags
   })
+
+  controller_packages = distinct(concat(var.controllers.packages, ["qemu-guest-agent"]))
+  controller_commands = distinct(concat(var.controllers.commands, ["systemctl enable qemu-guest-agent", "systemctl start qemu-guest-agent"]))
+  controller_files    = distinct(concat(var.controllers.files, []))
+
+  worker_packages = distinct(concat(var.workers.packages, ["qemu-guest-agent"]))
+  worker_commands = distinct(concat(var.workers.commands, ["systemctl enable qemu-guest-agent", "systemctl start qemu-guest-agent"]))
+  worker_files    = distinct(concat(var.workers.files, []))
 }
