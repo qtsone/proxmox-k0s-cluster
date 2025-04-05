@@ -6,6 +6,7 @@ locals {
       index     = i
       hostname  = "${local.master_hostname}-${i + 1}"
       address   = "${cidrhost(var.config.ip_subnet, local.ip_offset + i)}/${local.cidr_suffix}"
+      ip        = split("/", "${cidrhost(var.config.ip_subnet, local.ip_offset + i)}/${local.cidr_suffix}")[0]
       gateway   = var.config.gateway
       node_name = var.proxmox.nodes[i % length(var.proxmox.nodes)]
     }

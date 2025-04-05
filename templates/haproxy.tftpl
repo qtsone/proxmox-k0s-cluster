@@ -1,0 +1,84 @@
+# Example configuration file for HAProxy 2.0, refer to the url below for
+# a full documentation and examples for configuration:
+# https://cbonte.github.io/haproxy-dconv/2.0/configuration.html
+
+# Global parameters
+global
+
+	# Log events to a remote syslog server at given address using the
+	# specified facility and verbosity level. Multiple log options
+	# are allowed.
+	#log 10.0.0.1 daemon info
+
+	# Specifiy the maximum number of allowed connections.
+	maxconn 32000
+
+	# Raise the ulimit for the maximum allowed number of open socket
+	# descriptors per process. This is usually at least twice the
+	# number of allowed connections (maxconn * 2 + nb_servers + 1) .
+	ulimit-n 65535
+
+	# Drop privileges (setuid, setgid), default is "root" on OpenWrt.
+	uid 0
+	gid 0
+
+	# Perform chroot into the specified directory.
+	#chroot /var/run/haproxy/
+
+	# Daemonize on startup
+	daemon
+
+	nosplice
+	# Enable debugging
+	#debug
+
+	# Spawn given number of processes and distribute load among them,
+	# used for multi-core environments or to circumvent per-process
+	# limits like number of open file descriptors. Default is 1.
+	#nbproc 2
+
+# Default parameters
+defaults
+	# Default timeouts
+	timeout connect 5000ms
+	timeout client 50000ms
+	timeout server 50000ms
+
+frontend kubeAPI
+    bind ${ha.load_balancer_ip_address}:6443
+    mode tcp
+    default_backend kubeAPI_backend
+
+frontend konnectivity
+    bind ${ha.load_balancer_ip_address}:8132
+    mode tcp
+    default_backend konnectivity_backend
+
+frontend controllerJoinAPI
+    bind ${ha.load_balancer_ip_address}:9443
+    mode tcp
+    default_backend controllerJoinAPI_backend
+
+backend kubeAPI_backend
+    mode tcp
+%{ for master in masters ~}
+    server ${master.hostname} ${master.ip}:6443 check check-ssl verify none
+%{ endfor ~}
+
+backend konnectivity_backend
+    mode tcp
+%{ for master in masters ~}
+    server ${master.hostname} ${master.ip}:8132 check check-ssl verify none
+%{ endfor ~}
+
+backend controllerJoinAPI_backend
+    mode tcp
+%{ for master in masters ~}
+    server ${master.hostname} ${master.ip}:9443 check check-ssl verify none
+%{ endfor ~}
+
+listen stats
+   bind ${ha.load_balancer_ip_address}:80
+   mode http
+   stats enable
+   stats uri /

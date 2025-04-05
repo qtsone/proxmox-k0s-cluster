@@ -22,3 +22,10 @@ resource "local_file" "k0sctl" {
   content  = local.k0sctl_config
   filename = "${path.cwd}/k0sctl.yaml"
 }
+
+# Confighure HAProxy
+resource "local_file" "haproxy" {
+  count = var.ha.enabled ? 1 : 0
+  content  = local.haproxy_config
+  filename = "${path.cwd}/haproxy.cfg"
+}

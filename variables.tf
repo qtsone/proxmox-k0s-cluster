@@ -90,6 +90,33 @@ variable "masters" {
   })
 }
 
+variable "workers" {
+  description = "Configuration for worker nodes"
+  type = object({
+    # (Required) Number of worker nodes
+    count = optional(number, 3)
+
+    # (Optional) Hostname prefix
+    hostname = optional(string, "")
+
+    # Compute
+    cores     = optional(number, 4)
+    memory    = optional(number, 10240)
+    hugepages = optional(number, null)
+
+    # Disk
+    datastore_id = optional(string, "local")
+    disk_size    = optional(number, 100)
+
+    # (Optional) Network Configuration
+    bridge = optional(string, "vmbr0")
+
+    # (Optional) Define packages
+    packages = optional(list(string), ["qemu-guest-agent"])
+    commands = optional(list(string), ["systemctl enable qemu-guest-agent", "systemctl start qemu-guest-agent"])
+  })
+}
+
 variable "ha" {
   description = "(Optional) Control plane HA. More info: https://docs.k0sproject.io/stable/high-availability/"
   type = object({
@@ -121,31 +148,4 @@ variable "cplb" {
   default = {
     enabled = false
   }
-}
-
-variable "workers" {
-  description = "Configuration for worker nodes"
-  type = object({
-    # (Required) Number of worker nodes
-    count = optional(number, 3)
-
-    # (Optional) Hostname prefix
-    hostname = optional(string, "")
-
-    # Compute
-    cores     = optional(number, 4)
-    memory    = optional(number, 10240)
-    hugepages = optional(number, null)
-
-    # Disk
-    datastore_id = optional(string, "local")
-    disk_size    = optional(number, 100)
-
-    # (Optional) Network Configuration
-    bridge = optional(string, "vmbr0")
-
-    # (Optional) Define packages
-    packages = optional(list(string), ["qemu-guest-agent"])
-    commands = optional(list(string), ["systemctl enable qemu-guest-agent", "systemctl start qemu-guest-agent"])
-  })
 }
