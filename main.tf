@@ -1,6 +1,8 @@
 # Download Images
-resource "proxmox_virtual_environment_download_file" "master" {
-  for_each = toset(var.proxmox.nodes)
+resource "proxmox_virtual_environment_download_file" "lxc" {
+  for_each = (
+    var.controllers.deployment_type == "lxc" || var.workers.deployment_type == "lxc"
+  ) ? toset(var.proxmox.nodes) : toset([])
 
   content_type = "vztmpl"
   datastore_id = var.proxmox.datastore_id
@@ -8,8 +10,10 @@ resource "proxmox_virtual_environment_download_file" "master" {
   url          = local.lxc_url
 }
 
-resource "proxmox_virtual_environment_download_file" "worker" {
-  for_each = toset(var.proxmox.nodes)
+resource "proxmox_virtual_environment_download_file" "vm" {
+  for_each = (
+    var.controllers.deployment_type == "vm" || var.workers.deployment_type == "vm"
+  ) ? toset(var.proxmox.nodes) : toset([])
 
   content_type = "iso"
   datastore_id = var.proxmox.datastore_id

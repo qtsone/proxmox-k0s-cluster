@@ -5,23 +5,25 @@ metadata:
   user: admin
 spec:
   hosts:
-%{ for addr in master_ips ~}
-    - role: controller
+%{ for node in controllers ~}
+    - role: ${controller_role}
       installFlags:
 %{ for flag in installFlags ~}
         - ${flag}
 %{ endfor ~}
       ssh:
-        address: ${addr}
+        address: ${node.ip}
         user: ${username}
         port: 22
         keyPath: ${private_key_path}
-      # noTaints: true
+%{ if controller_worker ~}
+      noTaints: true
+%{ endif ~}
 %{ endfor ~}
-%{ for addr in worker_ips ~}
+%{ for node in workers ~}
     - role: worker
       ssh:
-        address: ${addr}
+        address: ${node.ip}
         user: ${username}
         port: 22
         keyPath: ${private_key_path}

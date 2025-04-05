@@ -39,6 +39,10 @@ variable "os" {
     version = optional(string)
   })
   default = {}
+  validation {
+    condition     = can(regex("(debian|ubuntu)", var.os.distro))
+    error_message = "os.distro must be either 'debian' or 'ubuntu'"
+  }
 }
 
 variable "k0s" {
@@ -67,18 +71,28 @@ variable "installFlags" {
   default     = ["--disable-components metrics-server"]
 }
 
-variable "masters" {
-  description = "Configuration for master nodes"
+variable "controllers" {
+  description = "Configuration for controller nodes"
   type = object({
-    # (Required) Number of master nodes
+    # (Required) Number of controller nodes
     count = optional(number, 3)
+
+    # "(Optional) Deployment type for controller nodes: 'lxc' (default) or 'vm'"
+    deployment_type = optional(string, "lxc")
+
+    # (Optional) If enabled, Controller nodes also act as workers
+    worker = optional(bool, false)
 
     # (Optional) Hostname prefix
     hostname = optional(string, "")
 
     # Compute
-    cores  = optional(number, 4)
-    memory = optional(number, 4096)
+    cpu_arch    = optional(string, "amd64")
+    cpu_sockets = optional(number, 1)
+    cpu_cores   = optional(number, 4)
+    cpu_units   = optional(number, 100)
+    memory      = optional(number, 4096)
+    hugepages   = optional(number, null)
 
     # Disk
     datastore_id = optional(string, "local")
@@ -87,7 +101,19 @@ variable "masters" {
     # (Optional) Network Configuration
     bridge  = optional(string, "vmbr0")
     network = optional(string, "eth0")
+
+    # (Optional) Define packages
+    packages = optional(list(string), [])
+    commands = optional(list(string), [])
+    files = optional(list(object({
+      path    = string
+      content = string
+    })), [])
   })
+  validation {
+    condition     = can(regex("(lxc|vm)", var.controllers.deployment_type))
+    error_message = "deployment_type must be either 'lxc' or 'vm'"
+  }
 }
 
 variable "workers" {
@@ -96,25 +122,40 @@ variable "workers" {
     # (Required) Number of worker nodes
     count = optional(number, 3)
 
+    # "(Optional) Deployment type for worker nodes: 'vm' (default) or 'lxc'"
+    deployment_type = optional(string, "vm")
+
     # (Optional) Hostname prefix
     hostname = optional(string, "")
 
     # Compute
-    cores     = optional(number, 4)
-    memory    = optional(number, 10240)
-    hugepages = optional(number, null)
+    cpu_arch    = optional(string, "amd64")
+    cpu_sockets = optional(number, 1)
+    cpu_cores   = optional(number, 4)
+    cpu_units   = optional(number, 100)
+    memory      = optional(number, 10240)
+    hugepages   = optional(number, null)
 
     # Disk
     datastore_id = optional(string, "local")
     disk_size    = optional(number, 100)
 
     # (Optional) Network Configuration
-    bridge = optional(string, "vmbr0")
+    bridge  = optional(string, "vmbr0")
+    network = optional(string, "eth0")
 
     # (Optional) Define packages
     packages = optional(list(string), ["qemu-guest-agent"])
     commands = optional(list(string), ["systemctl enable qemu-guest-agent", "systemctl start qemu-guest-agent"])
+    files = optional(list(object({
+      path    = string
+      content = string
+    })), [])
   })
+  validation {
+    condition     = can(regex("(lxc|vm)", var.workers.deployment_type))
+    error_message = "deployment_type must be either 'lxc' or 'vm'"
+  }
 }
 
 variable "ha" {

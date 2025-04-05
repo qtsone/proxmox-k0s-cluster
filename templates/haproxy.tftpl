@@ -61,20 +61,20 @@ frontend controllerJoinAPI
 
 backend kubeAPI_backend
     mode tcp
-%{ for master in masters ~}
-    server ${master.hostname} ${master.ip}:6443 check check-ssl verify none
+%{ for controller in controllers ~}
+    server ${controller.hostname} ${controller.ip}:6443 check check-ssl verify none
 %{ endfor ~}
 
 backend konnectivity_backend
     mode tcp
-%{ for master in masters ~}
-    server ${master.hostname} ${master.ip}:8132 check check-ssl verify none
+%{ for controller in controllers ~}
+    server ${controller.hostname} ${controller.ip}:8132 check check-ssl verify none
 %{ endfor ~}
 
 backend controllerJoinAPI_backend
     mode tcp
-%{ for master in masters ~}
-    server ${master.hostname} ${master.ip}:9443 check check-ssl verify none
+%{ for controller in controllers ~}
+    server ${controller.hostname} ${controller.ip}:9443 check check-ssl verify none
 %{ endfor ~}
 
 listen stats

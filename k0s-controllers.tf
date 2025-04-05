@@ -1,23 +1,23 @@
-# Configure VM Worker Nodes
+# Create LXC Control Plane
 locals {
-  worker_hostname = try(coalesce(var.workers.hostname), "${var.config.name}-worker")
-  worker_assignments = [
-    for i in range(var.workers.count) : {
+  controller_hostname = try(coalesce(var.controllers.hostname), "${var.config.name}-controller")
+  controller_assignments = [
+    for i in range(var.controllers.count) : {
       index     = i
-      hostname  = "${local.worker_hostname}-${i + 1}"
-      address   = "${cidrhost(var.config.ip_subnet, local.worker_ip_offset + i)}/${local.cidr_suffix}"
-      ip        = split("/", "${cidrhost(var.config.ip_subnet, local.worker_ip_offset + i)}/${local.cidr_suffix}")[0]
+      hostname  = "${local.controller_hostname}-${i + 1}"
+      address   = "${cidrhost(var.config.ip_subnet, local.ip_offset + i)}/${local.cidr_suffix}"
+      ip        = split("/", "${cidrhost(var.config.ip_subnet, local.ip_offset + i)}/${local.cidr_suffix}")[0]
       gateway   = var.config.gateway
       node_name = var.proxmox.nodes[i % length(var.proxmox.nodes)]
     }
   ]
 }
 
-# VM Worker Nodes
-resource "proxmox_virtual_environment_file" "worker_cloudconfig" {
+# VM Controller Nodes
+resource "proxmox_virtual_environment_file" "controller_cloudconfig" {
   for_each = {
-    for worker in local.worker_assignments : worker.hostname => worker
-    if var.workers.deployment_type == "vm"
+    for controller in local.controller_assignments : controller.hostname => controller
+    if var.controllers.deployment_type == "vm"
   }
 
   content_type = "snippets"
@@ -36,11 +36,11 @@ resource "proxmox_virtual_environment_file" "worker_cloudconfig" {
           - ${trimspace(var.config.public_key)}
     package_update: true
     packages:
-%{for pkg in local.worker_packages~}
+%{for pkg in local.controller_packages~}
       - ${pkg}
 %{endfor~}
     runcmd:
-%{for cmd in local.worker_commands~}
+%{for cmd in local.controller_commands~}
       - ${cmd}
 %{endfor~}
       - echo "done" > /tmp/cloud-config.done
@@ -56,39 +56,39 @@ resource "proxmox_virtual_environment_file" "worker_cloudconfig" {
   }
 }
 
-resource "proxmox_virtual_environment_vm" "worker" {
+resource "proxmox_virtual_environment_vm" "controller" {
   for_each = {
-    for worker in local.worker_assignments : worker.hostname => worker
-    if var.workers.deployment_type == "vm"
+    for controller in local.controller_assignments : controller.hostname => controller
+    if var.controllers.deployment_type == "vm"
   }
 
   name      = each.key
   node_name = each.value.node_name
-  tags      = ["k8s", "worker"]
+  tags      = ["k8s", "controller"]
 
   agent {
     enabled = true
   }
 
   cpu {
-    cores   = var.workers.cpu_cores
+    cores   = var.controllers.cpu_cores
     sockets = 1
     type    = "host"
     numa    = true
   }
 
   memory {
-    dedicated = var.workers.memory
-    hugepages = var.workers.hugepages
+    dedicated = var.controllers.memory
+    hugepages = var.controllers.hugepages
   }
 
   disk {
-    datastore_id = var.workers.datastore_id
+    datastore_id = var.controllers.datastore_id
     file_id      = proxmox_virtual_environment_download_file.vm[each.value.node_name].id
     interface    = "scsi0"
     iothread     = false
     discard      = "on"
-    size         = var.workers.disk_size
+    size         = var.controllers.disk_size
     ssd          = true
   }
 
@@ -97,7 +97,7 @@ resource "proxmox_virtual_environment_vm" "worker" {
   }
 
   initialization {
-    datastore_id = var.workers.datastore_id
+    datastore_id = var.controllers.datastore_id
     ip_config {
       ipv4 {
         address = each.value.address
@@ -105,23 +105,23 @@ resource "proxmox_virtual_environment_vm" "worker" {
       }
     }
 
-    user_data_file_id = proxmox_virtual_environment_file.worker_cloudconfig[each.key].id
+    user_data_file_id = proxmox_virtual_environment_file.controller_cloudconfig[each.key].id
   }
 
   network_device {
-    bridge = var.workers.bridge
+    bridge = var.controllers.bridge
   }
 
 }
 
-# LXC Worker Nodes
-resource "proxmox_virtual_environment_container" "worker" {
+# LXC Controller Nodes
+resource "proxmox_virtual_environment_container" "controller" {
   for_each = {
-    for worker in local.worker_assignments : worker.hostname => worker
-    if var.workers.deployment_type == "lxc"
+    for controller in local.controller_assignments : controller.hostname => controller
+    if var.controllers.deployment_type == "lxc"
   }
 
-  description = "Worker Node"
+  description = "controller Node"
 
   node_name = each.value.node_name
 
@@ -149,26 +149,26 @@ resource "proxmox_virtual_environment_container" "worker" {
   }
 
   cpu {
-    architecture = var.workers.cpu_arch
-    cores        = var.workers.cpu_cores
-    units        = var.workers.cpu_units
+    architecture = var.controllers.cpu_arch
+    cores        = var.controllers.cpu_cores
+    units        = var.controllers.cpu_units
   }
 
   memory {
-    dedicated = var.workers.memory
+    dedicated = var.controllers.memory
     swap      = 0
   }
 
   network_interface {
     enabled  = true
     firewall = false
-    bridge   = var.workers.bridge
-    name     = var.workers.network
+    bridge   = var.controllers.bridge
+    name     = var.controllers.network
   }
 
   disk {
-    datastore_id = var.workers.datastore_id
-    size         = var.workers.disk_size
+    datastore_id = var.controllers.datastore_id
+    size         = var.controllers.disk_size
   }
 
   operating_system {
@@ -177,12 +177,12 @@ resource "proxmox_virtual_environment_container" "worker" {
   }
 
   startup {
-    order      = "4"
+    order      = "3"
     up_delay   = "0"
     down_delay = "0"
   }
 
-  tags         = ["k8s", "worker"]
+  tags         = ["k8s", "controller"]
   unprivileged = false
 
   features {
@@ -191,10 +191,10 @@ resource "proxmox_virtual_environment_container" "worker" {
 }
 
 # Configure for k0s
-resource "null_resource" "configure_lxc_worker" {
+resource "null_resource" "configure_lxc_controller" {
   for_each = {
-    for k, v in proxmox_virtual_environment_container.worker : k => v
-    if var.workers.deployment_type == "lxc"
+    for k, v in proxmox_virtual_environment_container.controller : k => v
+    if var.controllers.deployment_type == "lxc"
   }
 
   triggers = {
