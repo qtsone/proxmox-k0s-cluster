@@ -1,5 +1,5 @@
 # Download Images
-resource "proxmox_virtual_environment_download_file" "master" {
+resource "proxmox_virtual_environment_download_file" "lxc" {
   for_each = toset(var.proxmox.nodes)
 
   content_type = "vztmpl"
@@ -8,7 +8,7 @@ resource "proxmox_virtual_environment_download_file" "master" {
   url          = local.lxc_url
 }
 
-resource "proxmox_virtual_environment_download_file" "worker" {
+resource "proxmox_virtual_environment_download_file" "vm" {
   for_each = toset(var.proxmox.nodes)
 
   content_type = "iso"

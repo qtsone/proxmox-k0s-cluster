@@ -13,9 +13,104 @@ locals {
   ]
 }
 
+# VM Controller Nodes
+resource "proxmox_virtual_environment_file" "master_cloudconfig" {
+  for_each = {
+    for master in local.master_assignments : master.hostname => master
+    if var.master_deployment_type == "vm"
+  }
+
+  content_type = "snippets"
+  datastore_id = var.proxmox.datastore_id
+  node_name    = each.value.node_name
+
+  source_raw {
+    data = <<-EOF
+    #cloud-config
+    hostname: ${each.key}
+    timezone: ${var.config.timezone}
+    users:
+      - name: ${var.config.username}
+        shell: /bin/bash
+        ssh_authorized_keys:
+          - ${trimspace(var.config.public_key)}
+    package_update: true
+    packages:
+%{for pkg in var.masters.packages~}
+      - ${pkg}
+%{endfor~}
+    runcmd:
+%{for cmd in var.masters.commands~}
+      - ${cmd}
+%{endfor~}
+      - echo "done" > /tmp/cloud-config.done
+    EOF
+
+    file_name = "${each.key}-cloud-config.yaml"
+  }
+}
+
+resource "proxmox_virtual_environment_vm" "master" {
+  for_each = {
+    for master in local.master_assignments : master.hostname => master
+    if var.master_deployment_type == "vm"
+  }
+
+  depends_on = [proxmox_virtual_environment_file.master_cloudconfig]
+
+  name      = each.key
+  node_name = each.value.node_name
+  tags      = ["k8s", "master"]
+
+  agent {
+    enabled = true
+  }
+
+  cpu {
+    cores   = var.masters.cpu_cores
+    sockets = 1
+    type    = "host"
+    numa    = true
+  }
+
+  memory {
+    dedicated = var.masters.memory
+    hugepages = var.masters.hugepages
+  }
+
+  disk {
+    datastore_id = var.masters.datastore_id
+    file_id      = proxmox_virtual_environment_download_file.lxc[each.value.node_name].id
+    interface    = "scsi0"
+    iothread     = false
+    discard      = "on"
+    size         = var.masters.disk_size
+    ssd          = true
+  }
+
+  initialization {
+    datastore_id = var.masters.datastore_id
+    ip_config {
+      ipv4 {
+        address = each.value.address
+        gateway = each.value.gateway
+      }
+    }
+
+    user_data_file_id = proxmox_virtual_environment_file.master_cloudconfig[each.key].id
+  }
+
+  network_device {
+    bridge = var.masters.bridge
+  }
+
+}
+
+# LXC Controller Nodes
 resource "proxmox_virtual_environment_container" "master" {
   for_each = {
     for master in local.master_assignments : master.hostname => master
+    if var.master_deployment_type == "lxc"
   }
 
   description = "Master Node"
@@ -46,9 +141,9 @@ resource "proxmox_virtual_environment_container" "master" {
   }
 
   cpu {
-    architecture = "amd64"
-    cores        = var.masters.cores
-    units        = 1024
+    architecture = var.masters.cpu_arch
+    cores        = var.masters.cpu_cores
+    units        = var.masters.cpu_units
   }
 
   memory {
@@ -69,7 +164,7 @@ resource "proxmox_virtual_environment_container" "master" {
   }
 
   operating_system {
-    template_file_id = proxmox_virtual_environment_download_file.master[each.value.node_name].id
+    template_file_id = proxmox_virtual_environment_download_file.lxc[each.value.node_name].id
     type             = local.distro
   }
 
@@ -88,9 +183,10 @@ resource "proxmox_virtual_environment_container" "master" {
 }
 
 # Configure for k0s
-resource "null_resource" "configure" {
+resource "null_resource" "configure_lxc_master" {
   for_each = {
     for k, v in proxmox_virtual_environment_container.master : k => v
+    if var.master_deployment_type == "lxc"
   }
 
   triggers = {
