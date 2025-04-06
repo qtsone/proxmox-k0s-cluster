@@ -171,6 +171,21 @@ resource "proxmox_virtual_environment_container" "controller" {
     size         = var.controllers.disk_size
   }
 
+  dynamic "mount_point" {
+    for_each = var.controllers.mounts
+    content {
+      volume        = mount_point.value.src_path
+      path          = mount_point.value.dst_path
+      size          = try(mount_point.value.size, null)
+      acl           = try(mount_point.value.acl, null)
+      backup        = try(mount_point.value.backup, false)
+      replicate     = try(mount_point.value.replicate, false)
+      shared        = try(mount_point.value.shared, false)
+      quota         = try(mount_point.value.quota, false)
+      mount_options = try(mount_point.value.mount_options, false)
+    }
+  }
+
   operating_system {
     template_file_id = proxmox_virtual_environment_download_file.lxc[each.value.node_name].id
     type             = local.distro
