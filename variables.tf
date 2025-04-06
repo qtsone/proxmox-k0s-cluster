@@ -98,6 +98,19 @@ variable "controllers" {
     datastore_id = optional(string, "local")
     disk_size    = optional(number, 10)
 
+    # Optional MountPoints
+    mounts = optional(list(object({
+      src_path      = string
+      dst_path      = string
+      size          = optional(string, null)
+      acl           = optional(bool, null)
+      backup        = optional(bool, false)
+      replicate     = optional(bool, false)
+      shared        = optional(bool, false)
+      quota         = optional(bool, false)
+      mount_options = optional(list(string), [])
+    })), [])
+
     # (Optional) Network Configuration
     bridge  = optional(string, "vmbr0")
     network = optional(string, "eth0")
@@ -139,6 +152,19 @@ variable "workers" {
     # Disk
     datastore_id = optional(string, "local")
     disk_size    = optional(number, 100)
+
+    # Optional MountPoints
+    mounts = optional(list(object({
+      src_path      = string
+      dst_path      = string
+      size          = optional(string, null)
+      acl           = optional(bool, null)
+      backup        = optional(bool, false)
+      replicate     = optional(bool, false)
+      shared        = optional(bool, false)
+      quota         = optional(bool, false)
+      mount_options = optional(list(string), [])
+    })), [])
 
     # (Optional) Network Configuration
     bridge  = optional(string, "vmbr0")
