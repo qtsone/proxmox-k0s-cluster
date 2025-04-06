@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+# [1.3.0](https://github.com/qtsone/proxmox-k0s-cluster/compare/v1.2.0...v1.3.0) (2025-04-06)
+
+
+### Bug Fixes
+
+* update download conditions ([fa1d062](https://github.com/qtsone/proxmox-k0s-cluster/commit/fa1d062622f255132c76b44c7cd88e54691133f3))
+
+
+### Features
+
+* enable optional mounts for LXC ([d9537e9](https://github.com/qtsone/proxmox-k0s-cluster/commit/d9537e98091b0378ac06efc8043f09c05172636e))
+
 # [1.2.0](https://github.com/qtsone/proxmox-k0s-cluster/compare/v1.1.0...v1.2.0) (2025-04-05)
 
 
