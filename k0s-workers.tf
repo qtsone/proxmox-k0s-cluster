@@ -8,7 +8,7 @@ locals {
       address   = "${cidrhost(var.config.ip_subnet, local.worker_ip_offset + i)}/${local.cidr_suffix}"
       ip        = split("/", "${cidrhost(var.config.ip_subnet, local.worker_ip_offset + i)}/${local.cidr_suffix}")[0]
       gateway   = var.config.gateway
-      node_name = var.proxmox.nodes[i % length(var.proxmox.nodes)]
+      node_name = var.proxmox.nodes[(i + var.controllers.count) % length(var.proxmox.nodes)]
     }
   ]
 }

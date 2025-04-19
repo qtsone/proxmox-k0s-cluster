@@ -68,7 +68,7 @@ variable "k0s" {
 variable "installFlags" {
   description = "(optional) Control Plane install flags"
   type        = list(string)
-  default     = ["--disable-components metrics-server"]
+  default     = []
 }
 
 variable "controllers" {
@@ -188,7 +188,7 @@ variable "ha" {
   description = "(Optional) Control plane HA. More info: https://docs.k0sproject.io/stable/high-availability/"
   type = object({
     enabled                  = optional(bool, false)
-    load_balancer_ip_address = optional(string)
+    load_balancer_ip_address = optional(string, "")
   })
   default = {
     enabled = false
