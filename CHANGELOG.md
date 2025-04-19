@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.1](https://github.com/qtsone/proxmox-k0s-cluster/compare/v1.3.0...v1.3.1) (2025-04-19)
+
+
+### Bug Fixes
+
+* **defaults:** update defaults ([2ae7069](https://github.com/qtsone/proxmox-k0s-cluster/commit/2ae7069168f6b6befa2b9458bdbd9658eda8bb84))
+* **docs:** update version ([7062625](https://github.com/qtsone/proxmox-k0s-cluster/commit/70626253d015b5f4fb0cb9c509be1c0f546f80a0))
+* **fmt:** terraform fmt ([fae80e5](https://github.com/qtsone/proxmox-k0s-cluster/commit/fae80e50512583279354ec4a89b46b2f912529c2))
+* **k0sctl:** render if installFlags defined ([a6dc5df](https://github.com/qtsone/proxmox-k0s-cluster/commit/a6dc5df7081d5b93f3d5bdfceb6176738d76e794))
+* **worker:** improve hosts looping ([d4b9a21](https://github.com/qtsone/proxmox-k0s-cluster/commit/d4b9a2107dd14810c9dae7fd90953ac5e6b2a7d0))
+
 # [1.3.0](https://github.com/qtsone/proxmox-k0s-cluster/compare/v1.2.0...v1.3.0) (2025-04-06)
 
 
