@@ -1,5 +1,5 @@
 formatter: "markdown table" # this is required
-version: "0.19"
+version: "0.20"
 header-from: "main.tf"
 footer-from: ""
 recursive:
