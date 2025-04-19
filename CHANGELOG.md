@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.2](https://github.com/qtsone/proxmox-k0s-cluster/compare/v1.3.1...v1.3.2) (2025-04-19)
+
+
+### Bug Fixes
+
+* add DNS domain support for proxmox ([481c501](https://github.com/qtsone/proxmox-k0s-cluster/commit/481c501996e71152bd8b1a9bc6d550c3da8a86ae))
+
 ## [1.3.1](https://github.com/qtsone/proxmox-k0s-cluster/compare/v1.3.0...v1.3.1) (2025-04-19)
 
 
