@@ -7,10 +7,12 @@ spec:
   hosts:
 %{ for node in controllers ~}
     - role: ${controller_role}
+%{ if length(installFlags) > 0 ~}
       installFlags:
 %{ for flag in installFlags ~}
         - ${flag}
 %{ endfor ~}
+%{ endif ~}
       ssh:
         address: ${node.ip}
         user: ${username}
