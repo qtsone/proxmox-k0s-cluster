@@ -29,6 +29,7 @@ variable "proxmox" {
   type = object({
     nodes        = list(string)
     datastore_id = optional(string, "local")
+    domain       = optional(string, "localdomain")
   })
 }
 

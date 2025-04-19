@@ -222,7 +222,7 @@ resource "null_resource" "configure_lxc_controller" {
     user        = "root"
     password    = ""
     private_key = var.config.private_key
-    host        = each.value.node_name
+    host        = "${each.value.node_name}.${var.proxmox.domain}"
   }
 
   provisioner "remote-exec" {
